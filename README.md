@@ -2,6 +2,16 @@
 [https://d2h0cx97tjks2p.cloudfront.net/blogs/wp-content/uploads/sites/2/2018/05/TensorFlow-Audio-Recognition-01.jpg]
 
 
++---+   +----------------+   +---+   +---+   +---+
+|Mic|-->|Audio Processing|-->|KWS|-->|STT|-->|NLU|
++---+   +----------------+   +---+   +---+   +-+-+
+                                               |
+                                               |
++-------+   +---+   +----------------------+   |
+|Speaker|<--|TTS|<--|Knowledge/Skill/Action|<--+
++-------+   +---+   +----------------------+
+
+
 ### Sound
 
 Le *BIT DEPTH* et le *SAMPLE RATE*
@@ -134,4 +144,7 @@ Les MFCC sont la représentation standard des fonctionnalités dans les système
 En reconnaissance vocale, *l’augmentation des données aide à généraliser les modèles et à les rendre robustes contre les variations de vitesse*, de volume, de hauteur tonale ou de bruit de fond. 
 
 J'ai fait ma propre implémentation de l'augmentation pour bien comprendre et contrôler ce qui se passe (au lieu d'utiliser l'implémentation tensorflow). Pydub s'est avéré très utile pour cette partie; Par exemple, cela vous permet d'augmenter le volume d'un fichier wave de *5 décibels* en écrivant simplement wav += 5où se wavtrouve un AudioSegmentobjet pydub .
+
+
+
 
