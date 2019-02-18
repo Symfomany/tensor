@@ -1,4 +1,8 @@
+#!/usr/bin/python
+
 # -*- coding: utf-8 -*-
+
+from colorama import Fore, Back, Style
 '''recorder.py
 Provides WAV recording functionality via two approaches:
 Blocking mode (record for a set duration):
@@ -21,16 +25,24 @@ import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
+from colorama import init
+import plotly.graph_objs as go
+import plotly.tools as tls
+
+init()
+
 
 SHORT_NORMALIZE = (1.0/32768.0)
 CHANNELS = 1
-RATE = 16000  
+RATE = 16000
 INPUT_BLOCK_TIME = 0.075
 INPUT_FRAMES_PER_BLOCK = int(RATE*INPUT_BLOCK_TIME)
 INITIAL_TAP_THRESHOLD = 0.010
-OVERSENSITIVE = 15.0/INPUT_BLOCK_TIME                    
-UNDERSENSITIVE = 120.0/INPUT_BLOCK_TIME # if we get this many quiet blocks in a row, decrease the threshold
-MAX_TAP_BLOCKS = 0.15/INPUT_BLOCK_TIME # if the noise was longer than this many blocks, it's not a 'tap'
+OVERSENSITIVE = 15.0/INPUT_BLOCK_TIME
+# if we get this many quiet blocks in a row, decrease the threshold
+UNDERSENSITIVE = 120.0/INPUT_BLOCK_TIME
+# if the noise was longer than this many blocks, it's not a 'tap'
+MAX_TAP_BLOCKS = 0.15/INPUT_BLOCK_TIME
 
 
 class Recorder(object):
@@ -45,11 +57,12 @@ class Recorder(object):
 
     def open(self, fname, mode='wb'):
         return RecordingFile(fname, mode, self.channels, self.rate,
-                            self.frames_per_buffer)
+                             self.frames_per_buffer)
+
 
 class RecordingFile(object):
-    def __init__(self, fname, mode, channels, 
-                rate, frames_per_buffer):
+    def __init__(self, fname, mode, channels,
+                 rate, frames_per_buffer):
         self.fname = fname
         self.mode = mode
         self.channels = channels
@@ -69,79 +82,82 @@ class RecordingFile(object):
         print("Go Record in Streaming...")
         # Use a stream with no callback function in blocking mode
         self._stream = self._pa.open(format=pyaudio.paInt16,
-                                        channels=self.channels,
-                                        rate=self.rate,
-                                        input=True,
-                                        frames_per_buffer=self.frames_per_buffer)
+                                     channels=self.channels,
+                                     rate=self.rate,
+                                     input=True,
+                                     frames_per_buffer=self.frames_per_buffer)
 
         ###
         # Init quiet and noisy
         ###
 
-        tap_threshold = INITIAL_TAP_THRESHOLD                  #]
-        noisycount = MAX_TAP_BLOCKS+1                          #|---- Variables for noise detector...
-        quietcount = 0                                         #|
-        errorcount = 0   
+        tap_threshold = INITIAL_TAP_THRESHOLD  # ]
+        noisycount = MAX_TAP_BLOCKS+1  # |---- Variables for noise detector...
+        quietcount = 0  # |
+        errorcount = 0
 
-        for _ in range(int(self.rate / self.frames_per_buffer * duration)): # time to record
+        for _ in range(int(self.rate / self.frames_per_buffer * duration)):  # time to record
+
             audio = self._stream.read(self.frames_per_buffer)
-            amplitude = self.get_rms(audio) # Root mean Square va permettre de calculer l'amplitude d'un son en streaming
-            print("Amplitude RMS (x100) ... ", amplitude * 1000)
+            # Root mean Square va permettre de calculer l'amplitude d'un son en streaming
+            amplitude = self.get_rms(audio)
+            print("Amplitude RMS (x100) ... " + Fore.GREEN +
+                  "|" * int(amplitude * 1000))
+            print(Style.RESET_ALL)
 
-            if amplitude* 1000 > 10: 
+            if amplitude * 1000 > 10:
                 print("C'est trop fort !")
-                
-            if amplitude > tap_threshold: # if its to loud... bruyant
+
+            if amplitude > tap_threshold:  # if its to loud... bruyant
                 quietcount = 0
                 noisycount += 1
                 if noisycount > OVERSENSITIVE:
-                    tap_threshold *= 1.1 # turn down the sensitivity
+                    tap_threshold *= 1.1  # turn down the sensitivity
 
-            else: # if its to quiet...
+            else:  # if its to quiet...
                 if 1 <= noisycount <= MAX_TAP_BLOCKS:
                     print("** Son**")
                 noisycount = 0
                 quietcount += 1
                 if quietcount > UNDERSENSITIVE:
-                    tap_threshold *= 0.9 # turn up the sensitivity
-            self.wavefile.writeframes(audio) # write iun real time
+                    tap_threshold *= 0.9  # turn up the sensitivity
+            self.wavefile.writeframes(audio)  # write iun real time
+            pass
         return None
 
-        
-    def get_rms(self,block):
+    def get_rms(self, block):
 
-        # RMS amplitude is defined as the square root of the 
+        # RMS amplitude is defined as the square root of the
         # mean over time of the square of the amplitude.
-        # so we need to convert this string of bytes into 
+        # so we need to convert this string of bytes into
         # a string of 16-bit samples...
 
-        # we will get one short out for each 
+        # we will get one short out for each
         # two chars in the string.
         count = len(block)/2
-        format = "%dh"%(count)
-        shorts = struct.unpack( format, block )
+        format = "%dh" % (count)
+        shorts = struct.unpack(format, block)
 
-        ## Unpack from the buffer buffer (presumably packed by pack(format, ...)) according to the format string format. The result is a tuple even if it contains exactly one item. The buffer’s size in bytes must match the size required by the format, as reflected by calcsize().
+        # Unpack from the buffer buffer (presumably packed by pack(format, ...)) according to the format string format. The result is a tuple even if it contains exactly one item. The buffer’s size in bytes must match the size required by the format, as reflected by calcsize().
 
         # iterate over the block.
         sum_squares = 0.0
         for sample in shorts:
-        # sample is a signed short in +/- 32768. 
-        # normalize it to 1.0
+            # sample is a signed short in +/- 32768.
+            # normalize it to 1.0
             n = sample * (1.0/32768.0)
             sum_squares += n*n
 
-        return math.sqrt( sum_squares / count )
-
+        return math.sqrt(sum_squares / count)
 
     def start_recording(self):
         # Use a stream with a callback in non-blocking mode
         self._stream = self._pa.open(format=pyaudio.paInt16,
-                                        channels=self.channels,
-                                        rate=self.rate,
-                                        input=True,
-                                        frames_per_buffer=self.frames_per_buffer,
-                                        stream_callback=self.get_callback())
+                                     channels=self.channels,
+                                     rate=self.rate,
+                                     input=True,
+                                     frames_per_buffer=self.frames_per_buffer,
+                                     stream_callback=self.get_callback())
         self._stream.start_stream()
         return self
 
@@ -155,22 +171,19 @@ class RecordingFile(object):
             return in_data, pyaudio.paContinue
         return callback
 
-
     def close(self):
         print("End Record in Streaming !")
         self._stream.close()
         self._pa.terminate()
-        self.wavefile.close()
+        self.wavefile.close()  # close file
         sound1 = AudioSegment.from_file(self.fname, format="wav")
         # add 6 db
         louder = sound1 + 15
-    
+
         start_trim = self.detect_leading_silence(louder)
         end_trim = self.detect_leading_silence(louder.reverse())
-        duration = len(louder)    
+        duration = len(louder)
         trimmed_sound = louder[start_trim:duration-end_trim]
-        print(louder)
-        print(trimmed_sound)
         trimmed_sound.export(self.fname, format="wav")
         print('Close file trimmed and exported with += 15dB')
 
@@ -181,41 +194,43 @@ class RecordingFile(object):
         wavefile.setframerate(self.rate)
         return wavefile
 
-    def detect_leading_silence(self,sound, silence_threshold=-55.0, chunk_size=10):
+    def detect_leading_silence(self, sound, silence_threshold=-55.0, chunk_size=10):
         '''
         sound is a pydub.AudioSegment
         silence_threshold in dB
         chunk_size in ms
         iterate over chunks until you find the first one with sound
         '''
-        trim_ms = 0 # ms
+        trim_ms = 0  # ms
 
-        assert chunk_size > 0 # to avoid infinite loop
+        assert chunk_size > 0  # to avoid infinite loop
         while sound[trim_ms:trim_ms+chunk_size].dBFS < silence_threshold and trim_ms < len(sound):
             trim_ms += chunk_size
 
         return trim_ms
 
-    def draw(self):
+    def draw(self, iterator):
+        pathsave = "./src/mfcc/"
         # Wave Plot
         filename = librosa.util.example_audio_file()
         y, sr = librosa.load(self.fname)
-        plt.figure()
+        fig = plt.figure()
         plt.subplot(3, 1, 1)
         librosa.display.waveplot(y, sr=sr)
         plt.title('Monophonic')
         plt.show()
+        fig.savefig(pathsave + 'wave-' + str(iterator) + '.png')
 
         # MFCC
-        
+
         D = np.abs(librosa.stft(y))**2
         S = librosa.feature.melspectrogram(S=D)
 
-        plt.figure(figsize=(10, 4))
-        librosa.display.specshow(librosa.power_to_db(S,ref=np.max), y_axis='mel', fmax=8000,x_axis='time')
+        fig = plt.figure(figsize=(10, 4))
+        librosa.display.specshow(librosa.power_to_db(
+            S, ref=np.max), y_axis='mel', fmax=8000, x_axis='time')
         plt.colorbar(format='%+2.0f dB')
         plt.title('Mel spectrogram')
         plt.tight_layout()
         plt.show()
-
-
+        fig.savefig(pathsave + 'mfcc-' + str(iterator) + '.png')
