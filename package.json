@@ -1,0 +1,30 @@
+{
+  "name": "tensor",
+  "version": "1.0.0",
+  "description": "(https://d2h0cx97tjks2p.cloudfront.net/blogs/wp-content/uploads/sites/2/2018/05/TensorFlow-Audio-Recognition-01.jpg) [https://d2h0cx97tjks2p.cloudfront.net/blogs/wp-content/uploads/sites/2/2018/05/TensorFlow-Audio-Recognition-01.jpg]",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Symfomany/tensor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Symfomany/tensor/issues"
+  },
+  "homepage": "https://github.com/Symfomany/tensor#readme",
+  "dependencies": {
+    "@google-cloud/storage": "^2.4.2",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "express-fileupload": "^1.1.1-alpha.3",
+    "mimetypes": "^0.1.1",
+    "multer": "^1.4.1",
+    "opn": "^5.4.0",
+    "uuid": "^3.3.2"
+  }
+}
