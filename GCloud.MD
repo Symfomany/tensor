@@ -2,6 +2,21 @@
 
 https://cloud.google.com/sdk/auth_success
 https://cloud.google.com/sdk/gcloud/
+https://cloud.google.com/vision/?authuser=1&hl=fr
+
+
+1. Recherche d'images
+Exploitez l'API Vision et AutoML Vision pour effectuer des recherches au sein de vos images sur divers sujets et scènes, y compris des catégories personnalisées. En savoir plus sur cette solution
+
+2. Classification de documents
+Accédez efficacement aux informations à l'aide des API Vision et Natural Language afin de transcrire et de classer des documents.
+
+3. Recherche de produits
+Analysez des images pour trouver des produits qui vous intéressent et effectuez des recherches visuelles dans des catalogues de produits à l'aide de l'API Cloud Vision.
+
+L'API détecte les visages au sein d'une image, ainsi que leurs caractéristiques principales, telles que l'état émotionnel ou les accessoires portés. Elle ne permet pas la reconnaissance faciale.
+
+
 
 ### Tutoriels
 

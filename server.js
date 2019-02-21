@@ -1,3 +1,9 @@
+
+// export GOOGLE_APPLICATION_CREDENTIALS="/Users/julienboyer/Desktop/tensor/console.json"
+// https://console.cloud.google.com/apis/credentials/serviceaccountkey?hl=fr&_ga=2.175432614.-542718344.1549350786
+// Upload file object: https://cloud.google.com/storage/docs/uploading-objects
+
+
 const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
@@ -8,10 +14,9 @@ const Multer = require("multer");
 const multer = Multer({
   storage: Multer.MemoryStorage,
   limits: {
-    fileSize: 5 * 1024 * 1024 // no larger than 5mb
+    fileSize: 5 * 1024 * 1024 // no larger than 5MB
   }
 });
-// export GOOGLE_APPLICATION_CREDENTIALS="/Users/julienboyer/Desktop/tensor/console.json"
 
 // Your Google Cloud Platform project ID
 const projectId = "console-28d14";
@@ -21,15 +26,10 @@ const storage = new Storage({
   projectId: projectId
 });
 
-let bucket = storage.bucket("symfomany");
+let bucket = storage.bucket(`taiwa_julien`);
 
 const app = express();
 
-// app.use(
-//   fileUpload({
-//     limits: { fileSize: 50 * 1024 * 1024 }
-//   })
-// );
 app.use(bodyParser.json()); // to support JSON-encoded bodies
 app.use(
   bodyParser.urlencoded({
@@ -48,13 +48,14 @@ app.get("/", (req, res) => {
  * @param {*} next
  */
 function sendUploadToGCS(req, res, next) {
-  console.log("one");
   const firstname = req.body.firstname;
   if (!req.file) {
     return next();
   }
 
   const gcsname = Date.now() + req.file.originalname;
+  // https://cloud.google.com/nodejs/docs/reference/storage/1.3.x/File
+
   const file = bucket.file(gcsname);
 
   const stream = file.createWriteStream({
@@ -90,9 +91,10 @@ app.post("/send", multer.single("image"), sendUploadToGCS, async (req, res) => {
   }
 
   if (req.file && req.file.cloudStoragePublicUrl) {
-    req.file.cloudStoragePublicUrl;
-    console.log(req.file.cloudStoragePublicUrl);
+    res.send(req.file.cloudStoragePublicUrl);
   }
+
+  res.send(false);
 });
 
 app.listen(3000, () => {
@@ -100,5 +102,5 @@ app.listen(3000, () => {
 });
 
 setTimeout(() => {
-  //opn("http://localhost:3000");
+  // opn("http://localhost:3000");
 }, 1000);

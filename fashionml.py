@@ -5,11 +5,15 @@ import matplotlib.pyplot as plt
 from keras.datasets import fashion_mnist
 import keras
 import os
+import imageio
+import struct
+import gzip
 
 print(tf.__version__)
 
 (train_images, train_labels), (test_images,
                                test_labels) = tf.keras.datasets.fashion_mnist.load_data()
+
 
 class_names = ['T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
                'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle boot']
@@ -20,9 +24,26 @@ checkpoint_path = "./checkpoints/cp.ckpt"
 checkpoint_dir = os.path.dirname(checkpoint_path)
 
 print(train_images.shape)  # (60000, 28, 28) -> 70000 mais test 10000
-print(test_images.shape)  # (60000, 28, 28) -> 70000 mais test 10000
+
 # print(train_labels)
 
+# arr = imageio.imread("./trained/train/ankle_boot.jpg")
+
+
+def read_idx(filename):
+    with gzip.open(filename) as f:
+        zero, data_type, dims = struct.unpack('>HBB', f.read(4))
+        shape = tuple(struct.unpack('>I', f.read(4))[0] for d in range(dims))
+        return np.fromstring(f.read(), dtype=np.uint8).reshape(shape)
+
+
+img_test = read_idx("./trained/train/ankle_boot.jpg.gz")
+# print(img_test)
+test_images.append(img_test)
+
+print(test_images.shape)  # (60000, 28, 28) -> 70000 mais test 10000
+
+exit()
 
 # Display first image
 # that the pixel values fall in the range of 0 to 255:
@@ -36,9 +57,9 @@ plt.grid(False)
 # For this, we divide the values by 255. The red, green and blue use 8 bits each, which have integer values from 0 to 255.
 # It's important that the training set and the testing set are preprocessed in the same way:
 
-train_images = train_images / 255.0
+train_images = train_images / 255.0  # reduction  en noir et blanc des images
 
-test_images = test_images / 255.0
+test_images = test_images / 255.0  # reduction  en noir et blanc des images
 
 # Display the first 25 images from the training set and display the class name below each image.
 # Verify that the data is in the correct format and we're ready to build and train the network.
